@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Change Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: #f3f0f7;
+            color: #2c2c2c;
+            padding: 3rem 2rem;
+            line-height: 1.6;
+        }
+
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.5rem;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(138, 107, 183, 0.1);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d4c8e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Lato', sans-serif;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #8a6bb7;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #a78bca 0%, #8a6bb7 100%);
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Lato', sans-serif;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(138, 107, 183, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(138, 107, 183, 0.4);
+        }
+
+        h2 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2rem;
+            color: #1a1a1a;
+            text-align: center;
+            margin: 3rem 0 2rem;
+            font-weight: 600;
+        }
+
+        ul {
+            list-style: none;
+            max-width: 900px;
+            margin: 0 auto 2rem;
+        }
+
+        ul li {
+            background: #faf8fc;
+            padding: 0.875rem 1.25rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #a78bca;
+            font-size: 0.95rem;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            border-collapse: separate;
+            border-spacing: 0;
+            box-shadow: 0 2px 8px rgba(138, 107, 183, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #a78bca 0%, #8a6bb7 100%);
+        }
+
+        th {
+            color: white;
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #ebe6f0;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #faf8fc;
+        }
+
+        p {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            padding: 3rem;
+            background: white;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(138, 107, 183, 0.1);
+            border-radius: 12px;
+        }
+        .status-ok {
+            color: #2e7d32;
+            font-weight: 700;
+        }
+
+        .status-changed {
+            color: #ef6c00;
+            font-weight: 700;
+        }
+
+        .status-error {
+            color: #c62828;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <h1>Website Change Detector</h1>
+    <form method="post">
+        <input type="text" name="url" placeholder="Enter website URL" required>
+        <button type="submit">Check now</button>
+    </form>
+    <h2>Tracked Websites</h2>
+    {% if pages %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li>{{ category.upper() }}: {{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <table>
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>Status</th>
+                    <th>Last Checked</th>
+                    <th>Last Changed</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in pages %}
+                    <tr>
+                        <td>{{ page[0] }}</td>
+                        <td class = "status-{{page[1]|lower}}">{{ page[1] }}</td>
+                        <td>{{ page[2] }}</td>
+                        <td>{{ page[3] or "-" }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('check_url') }}">
+                                <input type="hidden" name="url" value="{{ page[0] }}">
+                                <button type="submit" style="
+                                    padding: 0.4rem 0.6rem;
+                                    font-size: 0.8rem;
+                                    border-radius: 6px;
+                                ">
+                                    Re-check
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No websites tracked yet.</p>
+    {% endif %}
+</body>
+</html>
