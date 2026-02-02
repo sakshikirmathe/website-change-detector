@@ -9,7 +9,6 @@ from database import (
     save_page,
     get_all_pages
 )
-from requests.exceptions import RequestException
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
@@ -57,12 +56,23 @@ def index():
             logging.info(f"{url} → {status}")
 
         except Exception as e:
-            save_page(url, None, "ERROR", str(e))
-            flash(
-                "Could not access the website. It may block automated requests.",
-                "error"
-            )
-            logging.error(f"{url} → ERROR | {e}")
+            error_msg = str(e)
+            
+            # Provide more helpful error messages
+            if "403" in error_msg:
+                user_msg = "Website blocked automated requests (403 Forbidden). It may require manual access or IP whitelisting."
+            elif "SSL" in error_msg or "certificate" in error_msg.lower():
+                user_msg = "SSL/Certificate error: Website has security issues or blocked the request."
+            elif "timeout" in error_msg.lower():
+                user_msg = "Website took too long to respond (timeout). Server may be slow or blocking requests."
+            elif "connection" in error_msg.lower():
+                user_msg = "Connection error: Cannot reach the website. Check if URL is correct or if website is down."
+            else:
+                user_msg = f"Could not access the website: {error_msg}"
+            
+            save_page(url, None, "ERROR", error_msg)
+            flash(user_msg, "error")
+            logging.error(f"{url} → ERROR | {error_msg}")
 
         return redirect(url_for("index"))
 
@@ -100,12 +110,23 @@ def check_url():
         logging.info(f"Rechecked {url} → {status}")
 
     except Exception as e:
-        save_page(url, None, "ERROR", str(e))
-        flash(
-            "Could not access the website. It may block automated requests.",
-            "error"
-        )
-        logging.error(f"Recheck failed for {url} → {e}")
+        error_msg = str(e)
+        
+        # Provide more helpful error messages
+        if "403" in error_msg:
+            user_msg = "Website blocked automated requests (403 Forbidden). It may require manual access or IP whitelisting."
+        elif "SSL" in error_msg or "certificate" in error_msg.lower():
+            user_msg = "SSL/Certificate error: Website has security issues or blocked the request."
+        elif "timeout" in error_msg.lower():
+            user_msg = "Website took too long to respond (timeout). Server may be slow or blocking requests."
+        elif "connection" in error_msg.lower():
+            user_msg = "Connection error: Cannot reach the website. Check if URL is correct or if website is down."
+        else:
+            user_msg = f"Could not access the website: {error_msg}"
+        
+        save_page(url, None, "ERROR", error_msg)
+        flash(user_msg, "error")
+        logging.error(f"Recheck failed for {url} → {error_msg}")
 
     return redirect(url_for("index"))
 
