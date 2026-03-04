@@ -31,7 +31,8 @@ def utc_to_ist(utc_time_str):
     utc_dt = utc.localize(utc_dt)
 
     ist_dt = utc_dt.astimezone(ist)
-    return ist_dt.strftime("%H:%M:%S")
+    # Include date and time so "Last Checked" shows full timestamp
+    return ist_dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
 
